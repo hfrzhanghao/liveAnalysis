@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configList>
+	
+	<lockCount>
+		<quality lockCount="-1"  name = "播放失败" desc="播放失败" />
+		<quality lockCount="0"  name = "0" desc="卡顿次数 = 0" />
+		<quality lockCount="1"  name = "1" desc="卡顿次数 = 1" />
+		<quality lockCount="2"  name="2" desc="卡顿次数 = 2" />
+		<quality lockCount="3"  name="3" desc="卡顿次数 = 3" />
+		<quality lockCount="4"  name="4" desc="卡顿次数 = 4" />
+		<quality lockCount="9999999"  name="5" desc="卡顿次数 = 5" />
+		<!-- <quality lockCount="9999999"  name=">5" desc="卡顿次数 &gt; 5" /> -->
+	</lockCount>
+	
+	<duration>
+		<quality duration="300"  name = "[0,5]min" desc="播放时长 &lt;= 5min" />
+		<quality duration="600"  name = "(5,10]min" desc="播放时长 &gt; 5min 且&lt;= 10min" />
+		<quality duration="1200"  name="(10,20]min" desc="播放时长 &gt; 10min 且&lt;= 20min" />
+		<quality duration="2400"  name="(20,40]min" desc="播放时长&gt; 20min 且 &lt;= 40min" />
+		<quality duration="3600"  name="(40,60]min" desc="播放时长 &gt; 40min 且&lt;= 60min" />
+		<quality duration="9999999"  name=">1hours" desc="播放时长 &gt; 60min" />
+	</duration>
+	
+	<picDuration>
+		<quality picDuration="1000"  name = "0-1" desc="出画面时间 &lt;= 1sec" />
+		<quality picDuration="2000"  name = "1-2" desc="出画面时间 &gt; 1sec 且&lt;= 2sec" />
+		<quality picDuration="3000"  name="2-3" desc="出画面时间 &gt; 2sec 且&lt;= 3sec" />
+		<quality picDuration="4000"  name="3-4" desc="出画面时间 &gt; 3sec 且&lt;= 4sec" />
+		<quality picDuration="6000"  name="4-6" desc="出画面时间 &gt; 4sec 且&lt;= 6sec" />
+		<quality picDuration="10000"  name="6-10" desc="出画面时间 &gt; 6sec 且&lt;= 10sec" />
+		<quality picDuration="9999999"  name="10-999999" desc="出画面时间 &gt; 10sec" />
+	</picDuration>
+
+	
+</configList>
+
