@@ -29,6 +29,8 @@ public class Conn {
 		try {
 			MongoOptions options=new MongoOptions();
 			options.socketTimeout=CommonConstants.SOCKED_TIMEOUT;
+			options.connectionsPerHost=100;
+			options.autoConnectRetry=true;
 			
 			if (mongo == null) {
 				mongo = new Mongo(callDBUrlList,options);

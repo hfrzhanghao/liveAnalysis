@@ -1,5 +1,6 @@
 package com.db.dao.impl;
 
+//import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,11 +11,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sf.json.JSONObject;
+
 import org.apache.log4j.Logger;
 
 import com.AboutTime;
 import com.db.dao.BaseDao;
 import com.db.dao.LiveInfoDao;
+import com.db.entity.LivePreDataEntity;
 import com.db.entity.LoadPlayerEntity;
 import com.db.entity.PlayDataEntity;
 import com.dto.LiveListDto;
@@ -33,6 +37,8 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 	private Logger logger = Logger.getLogger(this.getClass());
 	final String LIVE_INFO_TAB = "live_data";
 	final String LOG_TIME_TAB = "live_time";
+	final String LIVE_PRE_DATA = "live_pre_data";
+	final String LIVE_ONLINE_DATA = "live_online_data";
 
 	final String HAS_NO_LOADPLAYER_EVENT = CommonConstants.HAS_NO_LOADPLAYER_EVENT;
 
@@ -698,7 +704,9 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 		PlayListDto liveDTO = new PlayListDto();
 		List<PlayDataEntity> playDataList = new ArrayList<PlayDataEntity>();
 
+		// 播放器信息搜索线程
 		LoadThread loadThread = new LoadThread(startTime, endTime, url, domain, isp, openType, businessID, userName, pageSize, currPage, iscount);
+		// 播放过程日志搜索线程
 		PlayThread playThread = new PlayThread(startTime, endTime, url, businessID, durationSelect, duration, firstPicDurationSelect, firstPicDuration,
 				pageSize, currPage, iscount);
 		
@@ -712,6 +720,7 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 				try {
 					Thread.sleep(1000);
 				} catch (Exception e) {
+					logger.error("统计中LiveInfoDaoImpl: ", e);
 					System.exit(0);// 退出程序
 				}
 			}
@@ -721,19 +730,23 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 				String uid_guid_bid = key_MapPlay.substring(0, getCharacterPosition(key_MapPlay, 3));
 				PlayDataEntity playDataEntity = playThread.mapPlay.get(key_MapPlay);
 
+				// 如果mapload中有本次播放的播放器信息，则将mapload与mapplay结合
 				if (loadThread.mapLoad.keySet().contains(uid_guid_bid)) {
+					
+					//System.out.println(uid_guid_bid);
 
 					LoadPlayerEntity loadPlayerEntity = loadThread.mapLoad.get(uid_guid_bid);
 					playDataEntity.setBrowser_version(loadPlayerEntity.getBrowser_version());
-					// playDataEntity.setBusinessID(loadPlayerEntity.getBusiness_id());
 					playDataEntity.setCity(loadPlayerEntity.getCity());
 
+					// 获取不到device_type_name并且sdk为flash，则device_name为PC
 					if (loadPlayerEntity.getDevice_type_name().equals("unknown") && loadPlayerEntity.getPlayer_sdk_type().toLowerCase().equals("flash")) {
 						playDataEntity.setDevice_name("PC");
 					} else {
 						playDataEntity.setDevice_name(loadPlayerEntity.getDevice_type_name());
 					}
-
+					
+					// 获取不到device_type_name则为PC
 					playDataEntity.setDevice_name(loadPlayerEntity.getDevice_type_name().equals("unknown") ? "PC" : loadPlayerEntity.getDevice_type_name());
 					playDataEntity.setOpenType(loadPlayerEntity.getOpen_type());
 					playDataEntity.setOperation_guid(loadPlayerEntity.getOperation_guid());
@@ -745,13 +758,11 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 					playDataEntity.setUserName(loadPlayerEntity.getUser_name());
 
 				} else {
-					
+					// 否则将播放器信息都置为HAS_NO_LOADPLAYER_EVENT
 					playDataEntity.setBrowser_version(HAS_NO_LOADPLAYER_EVENT);
-					// playDataEntity.setBusinessID(HAS_NO_LOADPLAYER_EVENT);
 					playDataEntity.setCity(HAS_NO_LOADPLAYER_EVENT);
 					playDataEntity.setDevice_name(HAS_NO_LOADPLAYER_EVENT);
 					playDataEntity.setOpenType(HAS_NO_LOADPLAYER_EVENT);
-					//playDataEntity.setOperation_guid(HAS_NO_LOADPLAYER_EVENT);
 					playDataEntity.setOs_type(HAS_NO_LOADPLAYER_EVENT);
 					playDataEntity.setOs_version(HAS_NO_LOADPLAYER_EVENT);
 					playDataEntity.setPlayer_sdk_type(HAS_NO_LOADPLAYER_EVENT);
@@ -759,10 +770,8 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 					playDataEntity.setUserName(HAS_NO_LOADPLAYER_EVENT);
 				}
 
+				// 之前的查找是将时间往前延伸1小时，最终只统计结束时间在设定起始时间之后的
 				if (AboutTime.toLongSSS(playDataEntity.getEnd_time()) >= startTime) {
-					/*if(playDataEntity.getBrowser_version().equals(HAS_NO_LOADPLAYER_EVENT)){
-						System.out.println("未获取到的opguid: "+playDataEntity.getOperation_guid());
-					}*/
 					playDataList.add(playDataEntity);
 				}
 			}
@@ -773,11 +782,177 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 			liveDTO.setTotalData(loadThread.countLoad);
 			liveDTO.setTotalPage(loadThread.totalPageLoad);
 			liveDTO.setList(playDataList);
+			
+			
+			playDataList = null;
+			playThread.mapPlay = null;
+			loadThread.mapLoad = null;
+	        
+			System.gc();
+			
 		} catch (Exception e) {
 			logger.error("统计中 查询findLive：", e);
 			System.out.println(e);
 		}
 		return liveDTO;
+	}
+	
+	@Override
+	public List<JSONObject> findLiveWithPretreat(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName,int pageSize, int currPage, boolean iscount) {
+		
+		List<JSONObject> listJSONObject = new ArrayList<JSONObject>();
+
+		int countPre;
+		int totalPagePre;
+		
+		DBCollection employee = db.getCollection(LIVE_PRE_DATA);
+		DBCursor curPre = null;
+		BasicDBObject dboPre = new BasicDBObject("startTime", new BasicDBObject("$lt", endTime));
+		dboPre.append("endTime", new BasicDBObject("$gt", startTime));
+		// 如果设置了url过滤，优先按照url过滤，否则按照businessID过滤
+		if (url == null) {
+			if (businessID != null) {
+				dboPre.append("business_id_key", businessID);
+			}
+		}else{
+			if (url.split(",").length > 0) {
+				BasicDBList urlList = new BasicDBList();
+				String[] urlArray = url.split(",");
+				for (int i = 0; i < urlArray.length; i++) {
+					urlList.add(new BasicDBObject("content", urlArray[i]));
+				}
+				dboPre.put("$or", urlList);
+			} else {
+				dboPre.append("content", url);
+			}
+		}
+		
+		// 按照地区过滤
+		if (domain != null) {
+			dboPre.append("province_key", domain);
+		}
+		
+		// 按照运营商过滤
+		if (isp != null) {
+			if (!isp.equals("else")) {
+				dboPre.append("isp_key", isp);
+			} else {
+				BasicDBList values = new BasicDBList();
+				values.add("电信");
+				values.add("移动");
+				values.add("联通");
+				dboPre.append("isp_key", new BasicDBObject("$nin", values));
+			}
+		}
+		
+		// 按照打开方式过滤
+		if (openType != null) {
+			dboPre.append("open_type_key", openType);
+		}
+		
+		// 企业号过滤
+		if (userName != null) {
+			dboPre.append("user_name_key", userName);
+		}
+		
+		countPre = employee.find(dboPre).count();
+
+		totalPagePre = countPre % pageSize == 0 ? countPre / pageSize : (countPre / pageSize) + 1;
+
+		for (int currPg = 1; currPg <= totalPagePre; currPg++) {
+			int skip = (currPg - 1) * pageSize;
+			curPre = employee.find(dboPre).skip(skip).limit(pageSize);
+			while (curPre.hasNext()) {
+				DBObject preObject = curPre.next();
+				JSONObject preJson = JSONObject.fromObject(preObject.toString());
+				listJSONObject.add(preJson);
+			}
+			
+			/*for(DBObject preObject : listDBObject){
+				JSONObject preJson = JSONObject.parseObject(preObject.toString());
+
+				String totalKey = preJson.get("key").toString();
+				if(!mapPre.containsKey(totalKey)){
+					mapPre.put(totalKey, new LivePreDataEntity());
+				}
+				LivePreDataEntity livePreDataEntity = mapPre.get(totalKey);
+				
+				JSONObject provinceObj = preJson.getJSONObject("province");
+				for(String provinceName : provinceObj.keySet()){
+					if(!livePreDataEntity.getProvince().containsKey(provinceName)){
+						livePreDataEntity.getProvince().put(provinceName, 1);
+					}else{
+						livePreDataEntity.getProvince().put(provinceName, livePreDataEntity.getProvince().get(provinceName) + 1);
+					}
+				}
+				
+			}*/
+		}
+		//TODO
+		Runtime run = Runtime.getRuntime();
+		long startMem = run.totalMemory()-run.freeMemory();
+		System.gc();
+		long endMem = run.totalMemory()-run.freeMemory();
+		System.out.println("memory difference:" + (endMem-startMem));
+		return listJSONObject;
+	}
+	
+	@Override
+	public List<JSONObject> findOnlineWithPretreat(long startTime, long endTime, String url, int pageSize, int currPage, boolean iscount) {
+		
+		List<JSONObject> listJSONObject = new ArrayList<JSONObject>();
+
+		int countPre;
+		int totalPagePre;
+		
+		DBCollection employee = db.getCollection(LIVE_ONLINE_DATA);
+		DBCursor curPre = null;
+		BasicDBObject dboPre = new BasicDBObject("startTime", new BasicDBObject("$lt", endTime));
+		dboPre.append("endTime", new BasicDBObject("$gt", startTime));
+		// 如果设置了url过滤，优先按照url过滤，否则按照businessID过滤
+		/*if (url == null) {
+			if (businessID != null) {
+				dboPre.append("business_id_key", businessID);
+			}
+		}else{
+			dboPre.append("url_key", url);
+		}*/
+		if (url != null && !url.equals("多条以英文逗号隔开") && !url.equals("")) {
+			if (url.split(",").length > 0) {
+				BasicDBList urlList = new BasicDBList();
+				String[] urlArray = url.split(",");
+				for (int i = 0; i < urlArray.length; i++) {
+					urlList.add(new BasicDBObject("content", urlArray[i]));
+				}
+				dboPre.put("$or", urlList);
+			} else {
+				dboPre.append("content", url);
+			}
+			//dboPre.append("content", url);
+		}
+		dboPre.append("isTen", null);
+
+		countPre = employee.find(dboPre).count();
+
+		totalPagePre = countPre % pageSize == 0 ? countPre / pageSize : (countPre / pageSize) + 1;
+
+		for (int currPg = 1; currPg <= totalPagePre; currPg++) {
+			int skip = (currPg - 1) * pageSize;
+			curPre = employee.find(dboPre).skip(skip).limit(pageSize);
+			while (curPre.hasNext()) {
+				DBObject preObject = curPre.next();
+				preObject.put("raw", 1);//原始的数据
+				JSONObject preJson = JSONObject.fromObject(preObject.toString());
+				listJSONObject.add(preJson);
+			}
+		}
+		//TODO
+		Runtime run = Runtime.getRuntime();
+		long startMem = run.totalMemory()-run.freeMemory();
+		System.gc();
+		long endMem = run.totalMemory()-run.freeMemory();
+		System.out.println("memory difference:" + (endMem-startMem));
+		return listJSONObject;
 	}
 
 	/*
@@ -1550,5 +1725,34 @@ public class LiveInfoDaoImpl extends BaseDao implements LiveInfoDao {
 			}
 		}
 		return slashMatcher.start();
+	}
+
+	@Override
+	public List<JSONObject> findLivePopular(long startTime, long endTime, String domainName, String topN,int pageSize, int currPage, boolean iscount) {
+		
+		List<JSONObject> listJSONObject = new ArrayList<JSONObject>();
+
+		int countPre;
+		int totalPagePre;
+		
+		DBCollection employee = db.getCollection(LIVE_PRE_DATA);
+		DBCursor curPre = null;
+		BasicDBObject dboPre = new BasicDBObject("startTime", new BasicDBObject("$lt", endTime));
+		dboPre.append("endTime", new BasicDBObject("$gt", startTime));
+
+		countPre = employee.find(dboPre).count();
+
+		totalPagePre = countPre % pageSize == 0 ? countPre / pageSize : (countPre / pageSize) + 1;
+
+		for (int currPg = 1; currPg <= totalPagePre; currPg++) {
+			int skip = (currPg - 1) * pageSize;
+			curPre = employee.find(dboPre).skip(skip).limit(pageSize);
+			while (curPre.hasNext()) {
+				DBObject preObject = curPre.next();
+				JSONObject preJson = JSONObject.fromObject(preObject.toString());
+				listJSONObject.add(preJson);
+			}
+		}
+		return listJSONObject;
 	}
 }

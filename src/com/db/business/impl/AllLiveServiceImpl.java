@@ -28,12 +28,13 @@ import com.creator.impl.UserOnlineCreator;
 import com.db.business.AllLiveService;
 import com.db.dao.LiveInfoDao;
 import com.db.dao.impl.LiveInfoDaoImpl;
-import com.db.entity.LiveInfoEntity;
+//import com.db.entity.LiveInfoEntity;
 import com.db.entity.PlayDataEntity;
 import com.dto.AllLiveDto;
-import com.dto.AllLogDto;
-import com.dto.LiveListDto;
+//import com.dto.AllLogDto;
+//import com.dto.LiveListDto;
 import com.dto.PlayListDto;
+import com.dto.PopularDto;
 import com.dto.StatRowDto;
 import com.dto.UserDto;
 import com.external.common.CommonConstants;
@@ -100,20 +101,34 @@ public class AllLiveServiceImpl implements AllLiveService {
 
 		userOnlineCreator = new UserOnlineCreator(start, end);
 		userOnlineCreator.init(json, null);
-		
+
 		openTypeCreator = new OpenTypeCreator();
 		openTypeCreator.init(json, null);
 	}
 
 	@Override
-	public List<UserDto> getUser(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName, String durationSelect, String duration, String firstPicDurationSelect, String firstPicDuration, String lockCount, String firstPicMin, String firstPicMax, String userAccount,String service, int totalUser) {
+	public List<UserDto> getUser(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName,
+			String durationSelect, String duration, String firstPicDurationSelect, String firstPicDuration, String lockCount, String firstPicMin,
+			String firstPicMax, String userAccount, String service, int totalUser) {
 		PlayListDto liveListDto = null;
 		if (service.equals("showTopNUser")) {
-			liveListDto = liveInfoDao.findDurationUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration, firstPicDurationSelect, firstPicDuration, userAccount,totalUser, /*1, */true);
+			liveListDto = liveInfoDao.findDurationUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
+					firstPicDurationSelect, firstPicDuration, userAccount, totalUser, /*
+																					 * 1
+																					 * ,
+																					 */true);
 		} else if (service.equals("showLockUser")) {
-			liveListDto = liveInfoDao.findLockUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration, firstPicDurationSelect, firstPicDuration, lockCount, totalUser, /*1,*/ true);
+			liveListDto = liveInfoDao.findLockUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
+					firstPicDurationSelect, firstPicDuration, lockCount, totalUser, /*
+																					 * 1
+																					 * ,
+																					 */true);
 		} else if (service.equals("showFirstPicDurationUser")) {
-			liveListDto = liveInfoDao.findFirstPicDurationUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration, firstPicDurationSelect, firstPicDuration, firstPicMin, firstPicMax, totalUser, /*1, */true);
+			liveListDto = liveInfoDao.findFirstPicDurationUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
+					firstPicDurationSelect, firstPicDuration, firstPicMin, firstPicMax, totalUser, /*
+																									 * 1
+																									 * ,
+																									 */true);
 		}
 
 		List<PlayDataEntity> callList = liveListDto.getList();
@@ -134,7 +149,7 @@ public class AllLiveServiceImpl implements AllLiveService {
 			userDto.setCity(liveInfoEntity.getCity());
 			userDto.setLockCount(liveInfoEntity.getLockCount() != null ? liveInfoEntity.getLockCount() : -1);
 			userDto.setDuration(liveInfoEntity.getDuration() != null ? liveInfoEntity.getDuration() : -1);
-			//userDto.setFirst_pic_duration_avg(liveInfoEntity.getFirst_pic_duration_avg());
+			// userDto.setFirst_pic_duration_avg(liveInfoEntity.getFirst_pic_duration_avg());
 			userList.add(userDto);
 		}
 
@@ -142,24 +157,39 @@ public class AllLiveServiceImpl implements AllLiveService {
 	}
 
 	@Override
-	public AllLiveDto getData(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName, String durationSelect, String duration, String firstPicDurationSelect, String firstPicDuration, String service, int pageSize) {
-		PlayListDto liveListDto = liveInfoDao.findLive(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration, firstPicDurationSelect, firstPicDuration, pageSize, 1, true);
+	public AllLiveDto getData(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName,
+			String durationSelect, String duration, String firstPicDurationSelect, String firstPicDuration, String service, int pageSize) {
+
+		long curr = System.currentTimeMillis();
+		long monthMillis = 30 * 24 * 60 * 60000L;
+		
+		//如果结束时间大于当前时间，开始时间小于当前时间，则将当前时间赋给结束时间
+		if(startTime < curr && endTime > curr){
+			endTime = curr;
+		}
+		
+		//若结束时间比开始时间多一个月，则只取时间范围内最近一个月
+		if(endTime - startTime > monthMillis){
+			startTime = endTime - monthMillis;
+		}
+		
+		PlayListDto liveListDto = liveInfoDao.findLive(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
+				firstPicDurationSelect, firstPicDuration, pageSize, 1, true);
 		int totalPage = liveListDto.getTotalPage();
 		int totalData = liveListDto.getTotalData();
 		if (totalPage >= 0) {
 			List<PlayDataEntity> callList = liveListDto.getList();
 			insertCount(callList, service, startTime, endTime, domain);
-			/*if (totalPage > 1) {
-				for (int i = 2; i <= totalPage; i++) {
-					PlayListDto liveListDTO2 = liveInfoDao.findLive(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration, firstPicDurationSelect, firstPicDuration, pageSize, i, false);
-					insertCount(liveListDTO2.getList(), service, startTime, endTime, domain);
-				}
-			}*/
+	        
+			liveListDto = null;
+			callList = null;
+			System.gc();
+
 			return putdata(totalData, service, domain);
 		}
 		return null;
 	}
-
+	
 	@Override
 	public List<Map<String, String>> getDataByIPUrl(long startTime, long endTime, String url, String cip, int pageSize) {
 		List<Map<String, String>> listlog = new ArrayList<Map<String, String>>();
@@ -264,9 +294,11 @@ public class AllLiveServiceImpl implements AllLiveService {
 	}
 
 	@Override
-	public List<String> getIPByAll(long startTime, long endTime, String url, int lockCount, String lockCountSelect, double picDuration, String picDurationSelect, String checkResult, int pageSize) {
+	public List<String> getIPByAll(long startTime, long endTime, String url, int lockCount, String lockCountSelect, double picDuration,
+			String picDurationSelect, String checkResult, int pageSize) {
 		List<String> ip_list = new ArrayList<String>();
-		PlayListDto liveListDto = liveInfoDao.findLiveIPByAll(startTime, endTime, url, lockCount, lockCountSelect, picDuration, picDurationSelect, checkResult, pageSize, 1, true);
+		PlayListDto liveListDto = liveInfoDao.findLiveIPByAll(startTime, endTime, url, lockCount, lockCountSelect, picDuration, picDurationSelect, checkResult,
+				pageSize, 1, true);
 		int totalPage = liveListDto.getTotalPage();
 		if (totalPage > 0) {
 			List<PlayDataEntity> callList = liveListDto.getList();
@@ -275,7 +307,8 @@ public class AllLiveServiceImpl implements AllLiveService {
 			}
 			if (totalPage > 1) {
 				for (int i = 2; i <= totalPage; i++) {
-					PlayListDto liveListDTO2 = liveInfoDao.findLiveIPByAll(startTime, endTime, url, lockCount, lockCountSelect, picDuration, picDurationSelect, checkResult, pageSize, i, true);
+					PlayListDto liveListDTO2 = liveInfoDao.findLiveIPByAll(startTime, endTime, url, lockCount, lockCountSelect, picDuration, picDurationSelect,
+							checkResult, pageSize, i, true);
 					List<PlayDataEntity> callList2 = liveListDTO2.getList();
 					for (PlayDataEntity liveInfoEntity : callList2) {
 						ip_list.add(liveInfoEntity.getCip() + "");
@@ -287,7 +320,7 @@ public class AllLiveServiceImpl implements AllLiveService {
 	}
 
 	private void insertCount(List<PlayDataEntity> callList, String service, long starttime, long endtime, String domain) {
-		//service = "userCome";
+		// service = "userCome";
 		if (callList.size() > 0) {
 			for (PlayDataEntity liveInfo : callList) {
 				if (service.equals("userOnline") || service.equals("all")) {
@@ -297,99 +330,99 @@ public class AllLiveServiceImpl implements AllLiveService {
 						logger.error("insertRecord:", e);
 					}
 				}
-				
-				//if(!liveInfo.getOs_type().equals(HAS_NO_LOADPLAYER_EVENT)){
-					if (service.equals("userCome") || service.equals("all")) {
-						try {
-							userCLCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
-					}
-					if (service.equals("userLeave") || service.equals("all")) {
-						try {
-							userLeaveCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
-					}
-					if (service.equals("OSType") || service.equals("all")) {
-						try {
-							deviceCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
-					}
 
-					if (service.equals("deviceName") || service.equals("all")) {
-						try {
-							deviceNameCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
+				// if(!liveInfo.getOs_type().equals(HAS_NO_LOADPLAYER_EVENT)){
+				if (service.equals("userCome") || service.equals("all")) {
+					try {
+						userCLCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
 					}
-					if (service.equals("OSVersion") || service.equals("all")) {
-						try {
-							osCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
+				}
+				if (service.equals("userLeave") || service.equals("all")) {
+					try {
+						userLeaveCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
 					}
-					if (service.equals("lockCount") || service.equals("all")) {
-						try {
-							lockCountCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
+				}
+				if (service.equals("OSType") || service.equals("all")) {
+					try {
+						deviceCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
 					}
-					if (service.equals("duration") || service.equals("all")) {
-						try {
-							durationCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
-					}
-					if (service.equals("firstPicDuration") || service.equals("all")) {
-						try {
-							picDurationCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
-					}
-					if (service.equals("domain") || service.equals("all")) {
-						try {
-							if (domain == null) {
-								provinceCreator.insertRecord(liveInfo);
-							} else {
-								cityCreator.insertRecord(liveInfo);
-							}
+				}
 
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
+				if (service.equals("deviceName") || service.equals("all")) {
+					try {
+						deviceNameCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
 					}
-					if (service.equals("playerSDK") || service.equals("all")) {
-						try {
-							sdkCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
+				}
+				if (service.equals("OSVersion") || service.equals("all")) {
+					try {
+						osCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
 					}
-					if (service.equals("browserVersion") || service.equals("all")) {
-						try {
-							browserVersionCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
+				}
+				if (service.equals("lockCount") || service.equals("all")) {
+					try {
+						lockCountCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
 					}
-					if (service.equals("openType") || service.equals("all")) {
-						try {
-							openTypeCreator.insertRecord(liveInfo);
-						} catch (Exception e) {
-							logger.error("insertRecord:", e);
-						}
+				}
+				if (service.equals("duration") || service.equals("all")) {
+					try {
+						durationCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
 					}
-				//}
+				}
+				if (service.equals("firstPicDuration") || service.equals("all")) {
+					try {
+						picDurationCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
+					}
+				}
+				if (service.equals("domain") || service.equals("all")) {
+					try {
+						if (domain == null) {
+							provinceCreator.insertRecord(liveInfo);
+						} else {
+							cityCreator.insertRecord(liveInfo);
+						}
+
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
+					}
+				}
+				if (service.equals("playerSDK") || service.equals("all")) {
+					try {
+						sdkCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
+					}
+				}
+				if (service.equals("browserVersion") || service.equals("all")) {
+					try {
+						browserVersionCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
+					}
+				}
+				if (service.equals("openType") || service.equals("all")) {
+					try {
+						openTypeCreator.insertRecord(liveInfo);
+					} catch (Exception e) {
+						logger.error("insertRecord:", e);
+					}
+				}
+				// }
 			}
 		}
 	}
@@ -403,7 +436,7 @@ public class AllLiveServiceImpl implements AllLiveService {
 			browser.setRows(browserVersionCreator.getRowList());
 			alldata.setBrowserVersion(browser);
 		}
-		
+
 		if (service.equals("openType") || service.equals("all")) {
 			StatRowDto openType = new StatRowDto();
 			openType.setDescription("openType");
@@ -417,14 +450,14 @@ public class AllLiveServiceImpl implements AllLiveService {
 			sdk.setRows(sdkCreator.getRowList());
 			alldata.setPlayerSDK(sdk);
 		}
-		
-		if(service.equals("domain") || service.equals("all")){
+
+		if (service.equals("domain") || service.equals("all")) {
 			if (domain == null) {
 				StatRowDto province = new StatRowDto();
 				province.setDescription("province");
 				province.setRows(provinceCreator.getRowList());
 				alldata.setProvince(province);
-			}else{
+			} else {
 				StatRowDto city = new StatRowDto();
 				city.setDescription("city");
 				city.setRows(cityCreator.getRowList());
@@ -499,6 +532,12 @@ public class AllLiveServiceImpl implements AllLiveService {
 
 		return alldata;
 
+	}
+
+	@Override
+	public List<PopularDto> getPopular(long startTime, long endTime, String domainName, String topN) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

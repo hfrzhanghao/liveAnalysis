@@ -41,7 +41,7 @@ public class BrowserVersionCreator implements ICreator{
 
 	@Override
 	public Object getRowList() {
-		int total = 0;
+		/*int total = 0;
 		int notComplete = 0;
 		String notc = CommonConstants.HAS_NO_LOADPLAYER_EVENT;
 		for(String key : browsermap.keySet()){
@@ -60,7 +60,7 @@ public class BrowserVersionCreator implements ICreator{
 					browsermap.put(key, itemp);
 				}
 			}
-		}
+		}*/
 		Map<String, StatRow> listRow = new TreeMap<String, StatRow>();
 		for (String key : m_tab.keySet()) {
 			StatRow naStatRow = new StatRow();

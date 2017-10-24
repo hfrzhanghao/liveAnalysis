@@ -160,6 +160,7 @@ public class RestTemplateProxy implements InitializingBean {
 			json = restTemplate.postForObject(url, form, String.class);
 		} catch (Exception e) {
 			logger.error("调用接口:" + url + "失败" + "(" + e.getMessage() + ")");
+			e.printStackTrace();
 			return null;
 		}
 		return getJSONObject(json);

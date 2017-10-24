@@ -85,12 +85,30 @@ public class ExternalService implements IBaseService {
 			form.add("endTime", params.get("endTime") + "");
 		}
 		
+		if(params.get("service").equals("showPopular")){
+			if(params.get("topN") == null || params.get("domainName") == null){
+				JSONObject message = new JSONObject();
+				message.put("result", -1);
+				message.put("info", "缺少域名参数domainName或前N个内容参数topN");
+				responseDto.setData(message);
+				return responseDto;
+			}
+		}
+		
 		String service = params.get("service") + "";
 		
 		String playType = "1";
 		
 		if(params.get("playType") != null){
 			playType = params.get("playType") + "";
+		}
+		
+		if(params.get("topN") != null){
+			form.add("topN", params.get("topN").toString());
+		}
+		
+		if(params.get("domainName") != null){
+			form.add("domainName", params.get("domainName"));
 		}
 		
 		if(params.get("url") != null){
@@ -142,12 +160,27 @@ public class ExternalService implements IBaseService {
 			// 将查询框表单值传送到monitorServer
 			if(service.equals("showTopNUser")){
 				jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.LIVE_USER_URL, form);
+			}else if(service.equals("showPopular")){
+				logger.info("CommonConstants.LIVE_POPULAR_URL:" + CommonConstants.LIVE_POPULAR_URL);
+				jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.LIVE_POPULAR_URL, form);
 			}else if(service.equals("getEnumValue")){
-				System.out.println("CommonConstants.GET_ENUM_URL:" + CommonConstants.GET_ENUM_URL);
+				logger.info("CommonConstants.GET_ENUM_URL:" + CommonConstants.GET_ENUM_URL);
 				jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.GET_ENUM_URL, form);
 			}else{
-				System.out.println("CommonConstants.LIVE_ANALYSIS_URL:" + CommonConstants.LIVE_ANALYSIS_URL);
-				jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.LIVE_ANALYSIS_URL, form);
+				if(CommonConstants.OLD_DATA == 1 && (params.get("duration") != null || params.get("firstPicDuration") != null || Long.parseLong(params.get("startTime")+"") < Long.parseLong(CommonConstants.NEW_DATA_TIME))){
+					logger.info("CommonConstants.LIVE_ANALYSIS_URL:" + CommonConstants.LIVE_ANALYSIS_URL);
+					jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.LIVE_ANALYSIS_URL, form);
+				}else{
+					logger.info("CommonConstants.LIVE_ANALYSIS_URL_PRETREAT:" + CommonConstants.LIVE_ANALYSIS_URL_PRETREAT);
+					jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.LIVE_ANALYSIS_URL_PRETREAT, form);
+				}
+				/*if(params.get("duration") != null || params.get("firstPicDuration") != null || Long.parseLong(params.get("startTime")+"") < Long.parseLong(CommonConstants.NEW_DATA_TIME)){
+					logger.info("CommonConstants.LIVE_ANALYSIS_URL:" + CommonConstants.LIVE_ANALYSIS_URL);
+					jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.LIVE_ANALYSIS_URL, form);
+				}else{
+					logger.info("CommonConstants.LIVE_ANALYSIS_URL_PRETREAT:" + CommonConstants.LIVE_ANALYSIS_URL_PRETREAT);
+					jsonObject = proxy.postFormWithReturnJSONObject1(CommonConstants.LIVE_ANALYSIS_URL_PRETREAT, form);
+				}*/
 			}
 			logger.info("CDN统计返回数据：正常");
 

@@ -36,7 +36,7 @@ public class UserOnlineCreator implements ICreator {
 
 	@Override
 	public void insertRecord(PlayDataEntity liveinfo) {
-		//count++;
+
 		long start = AboutTime.toLongSSS(liveinfo.getStart_time());
 		String first = (start - start % 60000) + 60000 + "";
 		for (int i = timeListMin.indexOf(first); i < timeListMin.size(); i++) {
@@ -77,8 +77,6 @@ public class UserOnlineCreator implements ICreator {
 				}
 			}
 		}
-		
-		//userOnlineMap.put(timeList.get(0), (int)((userOnlineMap.get(timeList.get(1)) + userOnlineMap.get(timeList.get(timeList.size() - 1))) / 2.5));
 		
 		Map<String, StatRow> listRow = new TreeMap<String, StatRow>();
 		for (String key : m_tab.keySet()) {

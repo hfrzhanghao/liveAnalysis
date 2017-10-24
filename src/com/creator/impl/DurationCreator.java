@@ -62,7 +62,7 @@ public class DurationCreator implements ICreator {
 				naStatRow.setDescription(desc_tab.get(key));
 			}else{
 				naStatRow.setName("Duration_AVG");
-				naStatRow.setDescription("平均播放时长");
+				naStatRow.setDescription("平均播放时长（秒）");
 			}
 			naStatRow.setCols(m_tab.get(key).getCols());
 
@@ -89,7 +89,7 @@ public class DurationCreator implements ICreator {
 
 				countCol.setValues(valuesCount);
 				countCol.setName("Duration_AVG");
-				countCol.setDescription("平均播放时长");
+				countCol.setDescription("平均播放时长（秒）");
 			}
 			cols.add(countCol);
 			listRow.get(key + "").setCols(cols);

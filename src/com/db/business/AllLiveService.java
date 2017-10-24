@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.dto.AllLiveDto;
-import com.dto.AllLogDto;
+import com.dto.PopularDto;
+//import com.dto.AllLogDto;
 import com.dto.UserDto;
 
 public interface AllLiveService {
@@ -15,4 +16,6 @@ public interface AllLiveService {
 	public List<String> getIPByPicDuration(long startTime, long endTime,String url,double picDuration,String picDurationSelect,int pageSize);
 	public List<String> getIPByResult(long startTime, long endTime,String url,String checkResult,int pageSize);
 	public List<String> getIPByAll(long startTime, long endTime,String url,int lockCount,String lockCountSelect,double picDuration,String picDurationSelect,String checkResult,int pageSize);
+	//public AllLiveDto getDataWithPretreat(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName,String service, int pageSize);
+	public List<PopularDto> getPopular(long startTime, long endTime, String domainName, String topN);
 }

@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 
 import com.CommStats;
 import com.db.business.AllLiveService;
+import com.db.business.AllLiveWithPreService;
 import com.db.business.impl.AllLiveServiceImpl;
+import com.db.business.impl.AllLiveServiceWithPreImpl;
 import com.dto.AllIPDto;
 import com.dto.AllLiveDto;
 import com.dto.AllLogDto;
@@ -59,7 +61,66 @@ public class AllServiceFacade {
 				result.setResult(2);
 			}
 			result.setData(listRow);
+			listRow = null;
+	        
+			System.gc();
+	        
+			System.runFinalization();
 		} catch (Exception e) {
+			e.printStackTrace();
+			String message = e.getMessage() == null ? "" : e.getMessage();
+			logger.error(message, e);
+			result.setResult(-1);
+		}
+		String data = JSONObject.toJSONString(result/*, SerializerFeature.EMPTY*/);
+		/*byte[] data = null;
+		try {
+			byte[] input = JSONObject.fromObject(result).toString().getBytes("UTF-8");
+			data = GZipUtils.compress(input);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}*/
+		return data;
+	}
+	
+	@Path("/liveCountWithPretreat")
+	@POST
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String liveCountWithPretreat(
+			@FormParam("startTime") long startTime, @FormParam("endTime") long endTime,
+			@FormParam("playType") String playType, 
+			@FormParam("url") String url, 
+			@FormParam("domain") String domain, 
+			@FormParam("isp") String isp,
+			@FormParam("openType") String openType, 
+			@FormParam("businessID") String businessID, 
+			@FormParam("userName") String userName,
+			@FormParam("service") String service) {
+
+		AllLiveWithPreService biz = null;
+		biz = new AllLiveServiceWithPreImpl(startTime,endTime);
+		ItemsResult<AllLiveDto> result = new ItemsResult<AllLiveDto>();
+		try {
+			AllLiveDto listRow = null;
+
+			listRow = biz.getDataWithPretreat(startTime, endTime, url,domain,isp,openType,businessID,userName, service,CommonConstants.DEFAULT_PAGE_SIZE);
+
+			if (listRow == null) {
+				result.setResult(2);
+			}
+			result.setData(listRow);
+			listRow = null;
+			//TODO
+			Runtime run = Runtime.getRuntime();
+			long startMem = run.totalMemory()-run.freeMemory();
+			System.gc();
+			long endMem = run.totalMemory()-run.freeMemory();
+			System.out.println("memory difference:" + (endMem-startMem));
+	        
+			System.runFinalization();
+		} catch (Exception e) {
+			e.printStackTrace();
 			String message = e.getMessage() == null ? "" : e.getMessage();
 			logger.error(message, e);
 			result.setResult(-1);

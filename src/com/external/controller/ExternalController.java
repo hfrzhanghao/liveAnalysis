@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import net.sf.json.JSONObject;
+
+import com.external.common.CommonConstants;
 import com.external.common.ObjectFactory;
 import com.external.common.IBaseService;
 //import com.channelsoft.setsail.external.common.IOrignalBaseService;
@@ -76,6 +78,7 @@ public class ExternalController {
 		response.setHeader("contentType", "text/html; charset=utf-8");
 		String service = request.getParameter("service");
 		String params = "";
+		logger.info("传入参数:" + request.getParameter("params"));
 		System.out.println(request.getParameter("params"));
 		params = request.getParameter("params");
 
