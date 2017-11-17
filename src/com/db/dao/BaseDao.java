@@ -3,7 +3,7 @@ package com.db.dao;
 import com.db.dao.Conn;
 import com.mongodb.DB;
 import com.mongodb.Mongo;
-import com.mongodb.MongoOptions;
+//import com.mongodb.MongoOptions;
 
 public class BaseDao {
 	protected Conn conn = Conn.getInstace();

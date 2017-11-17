@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.db.entity.BaseEntity;
-import com.db.entity.LiveInfoEntity;
 import com.db.entity.PlayDataEntity;
 import com.dictionary.UnitDictLive;
 import com.util.OptionAverage;
@@ -24,12 +23,7 @@ public class BaseCols {
 	}
 	
 	public void add(PlayDataEntity liveinfo) {
-		/*if (liveinfo != null) {
-			if(!"".equals(liveinfo.getDevice_type() + "")){
-				m_tab.get("times").add(1);
-			}
-			
-		}*/
+
 	}
 	
 	public List<StatCol> getCols() {

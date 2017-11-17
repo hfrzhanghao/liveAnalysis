@@ -1,9 +1,5 @@
 package com.db.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 public class LoadPlayerEntity {
 
 	private String uid;

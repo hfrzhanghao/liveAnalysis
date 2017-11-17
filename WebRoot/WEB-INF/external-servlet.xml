@@ -7,7 +7,7 @@
            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
            http://www.springframework.org/schema/util  http://www.springframework.org/schema/util/spring-util-3.1.xsd
            http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
-	<!-- 自动扫描com.channelsoft.setsail.controller 包下的@Controller标注的类控制器类 -->
+	<!-- 自动扫描com.external.controller 包下的@Controller标注的类控制器类 -->
 	<context:component-scan base-package="com.external.controller" />
 	<mvc:annotation-driven>
 		<mvc:message-converters>
@@ -21,8 +21,4 @@
 			</bean>
 		</mvc:message-converters>
 	</mvc:annotation-driven>
-
-	<!-- <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"> 
-		one of the properties available; the maximum file size(50M) in bytes <property 
-		name="maxUploadSize" value="52428800" /> </bean> -->
 </beans>

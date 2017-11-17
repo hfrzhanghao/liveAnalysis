@@ -1,5 +1,10 @@
-package com.external.proxy;
+package com.external.common.dto;
 
+/**
+ * 返回结果的数据结构
+ * 结果值
+ * 信息
+ * json字符串*/
 public class Result
 {
     private int result;

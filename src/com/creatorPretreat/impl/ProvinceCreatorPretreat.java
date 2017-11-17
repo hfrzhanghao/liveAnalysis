@@ -6,20 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import net.sf.json.JSONObject;
-
-import com.creator.ICreator;
 import com.creatorPretreat.ICreatorPretreat;
 import com.db.entity.BaseEntity;
 import com.db.entity.LiveInfoEntity;
-import com.db.entity.PlayDataEntity;
 import com.dto.BaseCols;
 import com.dto.StatCol;
 import com.dto.StatRow;
-import com.external.common.CommonConstants;
 
-public class ProvinceCreatorPretreat implements ICreatorPretreat{
+public class ProvinceCreatorPretreat implements ICreatorPretreat {
 
 	Map<String, BaseCols> m_tab = new TreeMap<String, BaseCols>();
 	Map<String, Integer> provincemap = new TreeMap<String, Integer>();
@@ -27,37 +22,37 @@ public class ProvinceCreatorPretreat implements ICreatorPretreat{
 	@Override
 	public void insertRecord(JSONObject liveJSONObject) {
 		JSONObject jsonObject = liveJSONObject.getJSONObject("province");
-		for(Object keyObj: jsonObject.keySet()){
+		for (Object keyObj : jsonObject.keySet()) {
 			String key = keyObj.toString();
-			//if(!key.equals("")){
-				if(provincemap.containsKey(key)){
-					provincemap.put(key, provincemap.get(key) + jsonObject.getInt(key));
-				}else{
-					m_tab.put(key, new BaseCols());
-					provincemap.put(key, jsonObject.getInt(key));
-				}
-			//}
+			if (provincemap.containsKey(key)) {
+				provincemap.put(key, provincemap.get(key) + jsonObject.getInt(key));
+			} else {
+				m_tab.put(key, new BaseCols());
+				provincemap.put(key, jsonObject.getInt(key));
+			}
 		}
 	}
-	
+
 	@Override
 	public Object getRowList() {
 		int total = 0;
 		int notComplete = 0;
 		String notc = "";
-		for(String key : provincemap.keySet()){
-			if(key.equals(notc)){
+		for (String key : provincemap.keySet()) {
+			if (key.equals(notc)) {
 				notComplete = provincemap.get(notc);
 				m_tab.remove(key);
 				continue;
 			}
 			total += provincemap.get(key);
 		}
-		for(String key : provincemap.keySet()){
-			if(notComplete != 0){
-				if(!key.equals(notc)){
-					BigDecimal btemp = new BigDecimal(provincemap.get(key) + notComplete * (provincemap.get(key) / (double)total)).setScale(0, BigDecimal.ROUND_HALF_UP);
-					int itemp = Integer.parseInt(btemp.toString());;
+		for (String key : provincemap.keySet()) {
+			if (notComplete != 0) {
+				if (!key.equals(notc)) {
+					BigDecimal btemp = new BigDecimal(provincemap.get(key) + notComplete * (provincemap.get(key) / (double) total)).setScale(0,
+							BigDecimal.ROUND_HALF_UP);
+					int itemp = Integer.parseInt(btemp.toString());
+					;
 					provincemap.put(key, itemp);
 				}
 			}
@@ -97,7 +92,7 @@ public class ProvinceCreatorPretreat implements ICreatorPretreat{
 	@Override
 	public void init(JSONObject config, Map<String, String> dictionary) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -109,7 +104,7 @@ public class ProvinceCreatorPretreat implements ICreatorPretreat{
 	@Override
 	public void insertRecordWithTimeRange(LiveInfoEntity liveInfo, long starttime, long endtime) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

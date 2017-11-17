@@ -1,41 +1,20 @@
 package com.external.controller;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import net.sf.json.JSONObject;
-
-import com.external.common.CommonConstants;
-import com.external.common.ObjectFactory;
 import com.external.common.IBaseService;
-//import com.channelsoft.setsail.external.common.IOrignalBaseService;
 import com.external.common.dto.CheckObjectDto;
-import com.external.common.dto.MessageInfoDto;
 import com.external.common.dto.ResponseDto;
 import com.external.exception.ExternalServiceException;
-/*import com.channelsoft.setsail.external.report.ReportCache;
- import com.channelsoft.setsail.external.report.dto.ReportInfoDto;*/
 import com.util.CheckUtil;
-import com.util.PropertiesUtil;
-import com.util.StringUtil;
 import com.util.BeanFactoryUtil;
 
 /**
@@ -61,19 +40,19 @@ public class ExternalController {
 	 * @param request
 	 *            request对象
 	 * @return 调用结果
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException
 	 */
 	@SuppressWarnings("rawtypes")
 	@RequestMapping("/externalService")
 	@ResponseBody
-	public String executeExternalService(HttpServletRequest request, HttpServletResponse response){
+	public String executeExternalService(HttpServletRequest request, HttpServletResponse response) {
 		try {
 			request.setCharacterEncoding("utf-8");
 			response.setCharacterEncoding("utf-8");
 		} catch (UnsupportedEncodingException e1) {
 			e1.printStackTrace();
 		}
-		
+
 		response.addHeader("Access-Control-Allow-Origin", "*"); // 跨域访问用
 		response.setHeader("contentType", "text/html; charset=utf-8");
 		String service = request.getParameter("service");
@@ -86,19 +65,16 @@ public class ExternalController {
 		String rspStr = "";
 		try {
 			// 固定参数检查
-
 			// 判断参数是否是Json数据
 			CheckObjectDto co = CheckUtil.checkJson(params);
 			JSONObject jobj = co.getJsonObject();
 			jobj.put("service", service);
 			IBaseService baseService = (IBaseService) BeanFactoryUtil.getExternalBean("externalService");
 			rspDto = baseService.process(JSONObject.fromObject(jobj.toString()), request, response);
-			
+
 			if (rspDto.getState() == 0) {
-				// rspDto.setMessageInfo(messageInfo);
 			}
 			if (rspDto.getState() == 2) {
-				// rspDto.setMessageInfo(messageInfo);
 			}
 		} catch (BeansException e) {
 			logger.error("BeansException:", e);
@@ -107,15 +83,14 @@ public class ExternalController {
 		} catch (Throwable e) {
 			logger.error("exception:", e);
 		} finally {
-			if(rspDto.getData() != null){
+			if (rspDto.getData() != null) {
 				rspStr = rspDto.getData().toString();
-			}else{
+			} else {
 				JSONObject jo = new JSONObject();
 				jo.put("result", -2);
 				jo.put("info", "数据获取异常");
 				rspStr = jo.toString();
 			}
-			// clock.stop();
 		}
 		return rspStr;
 	}

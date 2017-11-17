@@ -1,6 +1,5 @@
 package com.creator.impl;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +15,6 @@ import com.db.entity.PlayDataEntity;
 import com.dto.BaseCols;
 import com.dto.StatCol;
 import com.dto.StatRow;
-import com.external.common.CommonConstants;
 
 public class BrowserVersionCreator implements ICreator{
 

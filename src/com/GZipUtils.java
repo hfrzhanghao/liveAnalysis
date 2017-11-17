@@ -226,12 +226,12 @@ public  class GZipUtils {
     
     private static String inputStr = "zlex@zlex.org,snowolf@zlex.org,zlex.snowolf@zlex.org";  
     
-    public static void main(String[] args) throws Exception {
+    @SuppressWarnings("static-access")
+	public static void main(String[] args) throws Exception {
     	
     	inputStr = "fsfssxxxxxxxxxxs";
     	
     	GZipUtils gzs = new GZipUtils();
-    	  //System.err.println("原文:\t" + inputStr);  
     	  
           byte[] input = inputStr.getBytes();  
           System.err.println("原文长度:\t" + input.length);  
@@ -241,8 +241,7 @@ public  class GZipUtils {
           System.err.println("压缩后长度:\t" + data.length);  
     
           byte[] output = gzs.decompress(data);  
-          String outputStr = new String(output);  
-         // System.err.println("解压缩后:\t" + outputStr);  
+          String outputStr = new String(output);
           System.err.println("解压缩后长度:\t" + output.length);  
     
           System.out.println(inputStr.equals(outputStr)); 

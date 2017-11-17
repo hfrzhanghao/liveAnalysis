@@ -47,15 +47,14 @@ import com.util.HttpUtil;
 @Service
 public class BaseApiService {
 	private Logger logger = LoggerFactory.getLogger(BaseApiService.class);
-	
+
 	/**
-	 * 发送http请求
-	* Description:
-	*
-	* @param method
-	* @param url
-	* @param params
-	* @return
+	 * 发送http请求 Description:
+	 * 
+	 * @param method
+	 * @param url
+	 * @param params
+	 * @return
 	 */
 	public JSONObject sendHttpRequest(HttpMethod method, String url, RequestParams params) {
 		try {
@@ -64,51 +63,48 @@ public class BaseApiService {
 			String result = HttpUtil.sendRequest(request);
 			logger.info("http接口返回：" + result);
 			JSONObject jsonObject = JSON.parseObject(result);
-	
-			if(jsonObject == null) {
+
+			if (jsonObject == null) {
 				jsonObject = new JSONObject();
 			}
 			return jsonObject;
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			return new JSONObject();
 		}
 	}
-	
-	
+
 	/**
-	 * 发送http请求
-	* Description:
-	*
-	* @param method
-	* @param url
-	* @param params
-	* @return
+	 * 发送http请求 Description:
+	 * 
+	 * @param method
+	 * @param url
+	 * @param params
+	 * @return
 	 */
 	public JSONObject sendHttpRequestNolog(HttpMethod method, String url, RequestParams params) {
 		try {
 			HttpRequest request = new HttpRequest(method, url);
 			request.setRequestParams(params);
 			String result = HttpUtil.sendRequest(request);
-			//logger.info("http接口返回：" + result);
+			// logger.info("http接口返回：" + result);
 			JSONObject jsonObject = JSON.parseObject(result);
-	
-			if(jsonObject == null) {
+
+			if (jsonObject == null) {
 				jsonObject = new JSONObject();
 			}
 			return jsonObject;
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			return new JSONObject();
 		}
 	}
-	
+
 	/**
-	 * 发送http请求
-	* Description:
-	*
-	* @param method
-	* @param url
-	* @param params
-	* @return
+	 * 发送http请求 Description:
+	 * 
+	 * @param method
+	 * @param url
+	 * @param params
+	 * @return
 	 */
 	public JSONObject sendHttpNativeRequest(HttpMethod method, String url, String params) {
 		if (HttpMethod.POST == method) {
@@ -117,49 +113,48 @@ public class BaseApiService {
 			return sendHttpGet(url, params);
 		}
 	}
-	
+
 	public JSONObject sendHttpPost(String url, String params) {
 		try {
 			logger.info("url:{},params:{}", url, params);
 			String result = HttpUtils.sendPost(url, params);
-			logger.info("result:{}",  result);
-			
+			logger.info("result:{}", result);
+
 			JSONObject jsonObject = JSON.parseObject(result);
-	
-			if(jsonObject == null) {
+
+			if (jsonObject == null) {
 				jsonObject = new JSONObject();
 			}
 			return jsonObject;
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			return new JSONObject();
 		}
 	}
-	
+
 	public JSONObject sendHttpGet(String url, String params) {
 		try {
 			logger.info("url:{}", url + "?" + params);
 			String result = HttpUtils.sendGet(url + "?" + params);
 			logger.info("result:{}", result);
-			
+
 			JSONObject jsonObject = JSON.parseObject(result);
-	
-			if(jsonObject == null) {
+
+			if (jsonObject == null) {
 				jsonObject = new JSONObject();
 			}
 			return jsonObject;
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			return new JSONObject();
 		}
 	}
-	
+
 	/**
-	 * 发送http请求,POST方式，只传Url和Json字符串
-	* Description:
-	*
-	* @param method
-	* @param url
-	* @param params
-	* @return
+	 * 发送http请求,POST方式，只传Url和Json字符串 Description:
+	 * 
+	 * @param method
+	 * @param url
+	 * @param params
+	 * @return
 	 */
 	public JSONObject sendHttpRequestWithJsonPost(String url, String JsonString) {
 		try {
@@ -167,95 +162,88 @@ public class BaseApiService {
 			String result = httpRequestWithJson.post(JsonString);
 			logger.info("http接口返回：" + result);
 			JSONObject jsonObject = JSON.parseObject(result);
-	
-			if(jsonObject == null) {
+
+			if (jsonObject == null) {
 				jsonObject = new JSONObject();
 			}
 			return jsonObject;
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			return new JSONObject();
 		}
 	}
-	
+
 	/**
 	 * 上传文件
+	 * 
 	 * @param file
 	 * @param fileUploadUrl
 	 * @return
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 */
-	public JSONObject postFile(File file, String fileUploadUrl) 
-			throws ClientProtocolException, IOException {			
+	public JSONObject postFile(File file, String fileUploadUrl) throws ClientProtocolException, IOException {
 		JSONObject resJsonObject = null;
 		CloseableHttpClient httpclient = HttpClients.createDefault();
-		
+
 		logger.info("fileUploadUrl=" + fileUploadUrl);
-		
-		try {			
+
+		try {
 			HttpPost httppost = new HttpPost(fileUploadUrl);
 			FileBody bin = new FileBody(file);
-			StringBody comment = new StringBody("A binary file of some kind",
-					ContentType.TEXT_PLAIN);
-			HttpEntity reqEntity = MultipartEntityBuilder.create()
-					.addPart("bin", bin).addPart("comment", comment).build();
+			StringBody comment = new StringBody("A binary file of some kind", ContentType.TEXT_PLAIN);
+			HttpEntity reqEntity = MultipartEntityBuilder.create().addPart("bin", bin).addPart("comment", comment).build();
 			httppost.setEntity(reqEntity);
-			
+
 			logger.info("executing request " + httppost.getRequestLine());
-			
+
 			CloseableHttpResponse response = httpclient.execute(httppost);
 			try {
 				HttpEntity resEntity = response.getEntity();
 				if (resEntity != null) {
-					String resString = inputStream2String(resEntity
-							.getContent());
-					
+					String resString = inputStream2String(resEntity.getContent());
+
 					logger.info(resString);
-					
+
 					resJsonObject = JSONObject.parseObject(resString);
 				}
 				EntityUtils.consume(resEntity);
 			} finally {
 				response.close();
 			}
-		} 
-		catch (ClientProtocolException e) {
+		} catch (ClientProtocolException e) {
 			logger.error("ClientProtocolException", e);
-		} 
-		catch (IOException e) {
+		} catch (IOException e) {
 			logger.error("IOException", e);
-		} 
-		finally {
+		} finally {
 			try {
 				httpclient.close();
 			} catch (IOException e) {
 				logger.error("IOException", e);
-			}			
+			}
 		}
 		return resJsonObject;
 	}
-	
+
 	/**
 	 * 上传文件
+	 * 
 	 * @param file
 	 * @param fileUploadUrl
 	 * @return
 	 * @throws ClientProtocolException
 	 * @throws IOException
 	 */
-	public JSONObject postFile(JSONObject paramObj, String fileName, File file, String fileUploadUrl) {			
+	public JSONObject postFile(JSONObject paramObj, String fileName, File file, String fileUploadUrl) {
 		JSONObject resJsonObject = null;
 		CloseableHttpClient httpclient = HttpClients.createDefault();
-		
+
 		logger.info("url:{},params：{}", fileUploadUrl, paramObj.toJSONString());
-		
-		try {			
+
+		try {
 			HttpPost httppost = new HttpPost(fileUploadUrl);
 			FileBody bin = new FileBody(file);
-			StringBody comment = new StringBody("A binary file of some kind",
-					ContentType.TEXT_PLAIN);
-			MultipartEntityBuilder buider = MultipartEntityBuilder.create()
-					.addPart(fileName, bin).addPart("comment", comment);
+			StringBody comment = new StringBody("A binary file of some kind", ContentType.TEXT_PLAIN);
+			MultipartEntityBuilder buider = MultipartEntityBuilder.create().addPart(fileName, bin).addPart("comment", comment);
 			if (paramObj != null) {
 				for (Entry<String, Object> entry : paramObj.entrySet()) {
 					buider.addTextBody(entry.getKey(), String.valueOf(entry.getValue()));
@@ -263,41 +251,37 @@ public class BaseApiService {
 			}
 			HttpEntity reqEntity = buider.build();
 			httppost.setEntity(reqEntity);
-			
+
 			logger.info("executing request " + httppost.getRequestLine());
-			
+
 			CloseableHttpResponse response = httpclient.execute(httppost);
 			try {
 				HttpEntity resEntity = response.getEntity();
 				if (resEntity != null) {
-					String resString = inputStream2String(resEntity
-							.getContent());
-					
+					String resString = inputStream2String(resEntity.getContent());
+
 					logger.info(resString);
-					
+
 					resJsonObject = JSONObject.parseObject(resString);
 				}
 				EntityUtils.consume(resEntity);
 			} finally {
 				response.close();
 			}
-		} 
-		catch (ClientProtocolException e) {
+		} catch (ClientProtocolException e) {
 			logger.error("ClientProtocolException", e);
-		} 
-		catch (IOException e) {
+		} catch (IOException e) {
 			logger.error("IOException", e);
-		} 
-		finally {
+		} finally {
 			try {
 				httpclient.close();
 			} catch (IOException e) {
 				logger.error("IOException", e);
-			}			
+			}
 		}
 		return resJsonObject;
 	}
-	
+
 	public static String inputStream2String(InputStream in) throws IOException {
 		StringBuffer out = new StringBuffer();
 		byte[] b = new byte[4096];
@@ -306,16 +290,16 @@ public class BaseApiService {
 		}
 		return out.toString();
 	}
-	
+
 	/**
-     * 解析结果集
-     * 
-     * @param result 字符串
-     * @return JSONObject
-     */	
+	 * 解析结果集
+	 * 
+	 * @param result
+	 *            字符串
+	 * @return JSONObject
+	 */
 	public JSONObject resolveResult(JSONObject result) {
-		if (result == null || result.isEmpty())
-		{
+		if (result == null || result.isEmpty()) {
 			throw new ExternalServiceException(PropertiesUtil.getMessageInfoByKey("http.call.failure"));
 		} else {
 			int status = Integer.parseInt(result.getString("status"));
@@ -324,70 +308,71 @@ public class BaseApiService {
 				throw new ExternalServiceException(new MessageInfoDto(status, message));
 			}
 		}
-		
+
 		return result;
 	}
-	
+
 	/**
-     * 解析结果集
-     * 
-     * @param result 字符串
-     * @return JSONObject
-     */	
+	 * 解析结果集
+	 * 
+	 * @param result
+	 *            字符串
+	 * @return JSONObject
+	 */
 	public JSONObject resolveOrginalResult(JSONObject returnObj) {
-		if (returnObj == null || returnObj.isEmpty())
-		{
+		if (returnObj == null || returnObj.isEmpty()) {
 			throw new ExternalServiceException(PropertiesUtil.getMessageInfoByKey("http.call.failure"));
-		} 
+		}
 		int code = returnObj.getIntValue("code");
-    	// 有异常时直接返回
-    	if (!StringUtil.isRspSucess(code)) {
-    		MessageInfoDto messageInfoDto = new MessageInfoDto();
-    		messageInfoDto.setState(returnObj.getIntValue("code"));
-    		messageInfoDto.setMessage(returnObj.getString("message"));
-    		throw new ExternalServiceException(messageInfoDto);
-    	} else {
-    		MessageInfoDto messageInfo = PropertiesUtil.getMessageInfoSuccess();
+		// 有异常时直接返回
+		if (!StringUtil.isRspSucess(code)) {
+			MessageInfoDto messageInfoDto = new MessageInfoDto();
+			messageInfoDto.setState(returnObj.getIntValue("code"));
+			messageInfoDto.setMessage(returnObj.getString("message"));
+			throw new ExternalServiceException(messageInfoDto);
+		} else {
+			MessageInfoDto messageInfo = PropertiesUtil.getMessageInfoSuccess();
 			returnObj.remove("code");
 			returnObj.put("state", messageInfo.getState());
 			returnObj.put("message", messageInfo.getMessage());
-    	}
-		
+		}
+
 		return returnObj;
 	}
-	
+
 	/**
-     * 解析结果集
-     * 
-     * @param result 字符串
-     * @return JSONObject
-     */	
+	 * 解析结果集
+	 * 
+	 * @param result
+	 *            字符串
+	 * @return JSONObject
+	 */
 	public JSONObject resolveOrginalResultWithNoException(JSONObject returnObj) {
-		if (returnObj == null || returnObj.isEmpty())
-		{
+		if (returnObj == null || returnObj.isEmpty()) {
 			throw new ExternalServiceException(PropertiesUtil.getMessageInfoByKey("http.call.failure"));
-		} 
+		}
 		int code = returnObj.getIntValue("code");
-    	// 有异常时直接返回
-    	if (StringUtil.isRspSucess(code)) {
-    		MessageInfoDto messageInfo = PropertiesUtil.getMessageInfoSuccess();
+		// 有异常时直接返回
+		if (StringUtil.isRspSucess(code)) {
+			MessageInfoDto messageInfo = PropertiesUtil.getMessageInfoSuccess();
 			returnObj.remove("code");
 			returnObj.put("state", messageInfo.getState());
 			returnObj.put("message", messageInfo.getMessage());
-    	} else {
-    		returnObj.put("state", code);
+		} else {
+			returnObj.put("state", code);
 			returnObj.remove("code");
-    	}
-		
+		}
+
 		return returnObj;
 	}
-	
+
 	public static void main(String[] args) {
 		BaseApiService servie = new BaseApiService();
 		JSONObject paramObj = new JSONObject();
 		paramObj.put("uid", 74789);
 		paramObj.put("oauth_token", "62d3bc0464a14c87c74799b38ba72b07");
-		JSONObject returnObj = servie.postFile(paramObj, "userfile", new File("F:/picture/head.jpg"), "http://localhost:8080/setsail/external/orginalService/avatar");
-	    System.err.print(returnObj.toJSONString());
+		JSONObject returnObj = servie.postFile(paramObj, "userfile", new File("F:/picture/head.jpg"),
+				"http://localhost:8080/setsail/external/orginalService/avatar");
+		System.err.print(returnObj.toJSONString());
 	}
 }

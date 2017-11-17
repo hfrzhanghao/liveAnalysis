@@ -5,16 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
-import com.AboutTime;
-import com.creator.ICreator;
 import com.creatorPretreat.ICreatorPretreat;
 import com.db.entity.BaseEntity;
 import com.db.entity.LiveInfoEntity;
-import com.db.entity.PlayDataEntity;
 import com.dto.BaseCols;
 import com.dto.StatCol;
 import com.dto.StatRow;
@@ -49,7 +44,19 @@ public class UserOnlineCreatorPretreat implements ICreatorPretreat {
 					long thisTime = trueStart + index * 60000;
 					if (userOnlineMapMin.containsKey(thisTime + "")) {
 						int onlineCount = Integer.parseInt(onlineCountObj.toString());
-						userOnlineMapMin.put(thisTime + "", userOnlineMapMin.get(thisTime + "") + onlineCount);
+						int hour = Integer.parseInt(DateUtil.stampToDate(thisTime).split(":")[0].split("-")[3]);
+						double random = Math.random();
+						if ((hour == 1 || hour == 5)) {
+							if (random > 0.33) {
+								userOnlineMapMin.put(thisTime + "", userOnlineMapMin.get(thisTime + "") + onlineCount);
+							}
+						} else if (hour >= 2 && hour <= 4) {
+							if (random > 0.66) {
+								userOnlineMapMin.put(thisTime + "", userOnlineMapMin.get(thisTime + "") + onlineCount);
+							}
+						} else {
+							userOnlineMapMin.put(thisTime + "", userOnlineMapMin.get(thisTime + "") + onlineCount);
+						}
 					}
 					index++;
 				}
@@ -57,7 +64,6 @@ public class UserOnlineCreatorPretreat implements ICreatorPretreat {
 				int userOnlineCount = liveinfo.getInt("userOnline");
 				int hour = Integer.parseInt(DateUtil.stampToDate(endTime).split(":")[0].split("-")[3]);
 				double random = Math.random();
-				// if(userOnlineMapMin.get(endTime + "") != null){
 				if ((hour == 1 || hour == 5)) {
 					if (random > 0.33) {
 						userOnlineMapMin.put(endTime + "", userOnlineMapMin.get(endTime + "") + userOnlineCount);
@@ -69,7 +75,6 @@ public class UserOnlineCreatorPretreat implements ICreatorPretreat {
 				} else {
 					userOnlineMapMin.put(endTime + "", userOnlineMapMin.get(endTime + "") + userOnlineCount);
 				}
-				// }
 			}
 		}
 	}

@@ -1,38 +1,24 @@
 package com.facade;
 
 import java.util.List;
-import java.util.Map;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
 import net.sf.json.JSONObject;
-
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
-
-
-import com.CommStats;
-import com.DataTypesConvert;
-import com.GZipUtils;
-import com.db.business.AllLiveService;
 import com.db.business.AllLiveWithPreService;
-import com.db.business.impl.AllLiveServiceImpl;
 import com.db.business.impl.AllLiveServiceWithPreImpl;
-import com.dto.AllIPDto;
-import com.dto.AllLiveDto;
-import com.dto.AllLogDto;
 import com.dto.PopularDto;
-import com.dto.UserDto;
 import com.external.common.CommonConstants;
-import com.result.ItemsResult;
 import com.result.PopularResult;
-import com.result.UsersResult;
-
+/**
+ * 获取某域名下内容按次数排序
+ * 
+ * */
 @Service
 @Path("/popular")
 public class PopularServiceFacade {

@@ -2,13 +2,7 @@ package test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.ws.rs.FormParam;
-
 import junit.framework.TestCase;
-
-import net.sf.json.JSONObject;
-
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +49,7 @@ public class Zhangtest extends TestCase {
 		System.out.println(entity.getBody());
 	}
 
+	@SuppressWarnings("unused")
 	private static HttpEntity<String> createHttpEntity(String json) {
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.set("Accept", "application/json");

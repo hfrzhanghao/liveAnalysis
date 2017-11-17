@@ -88,10 +88,6 @@ public class UserCLCreator implements ICreator{
 		int timescale = CommonConstants.TIME_SCALE;
 		timeScale = timeDifference / timescale; //共288个刻度点
 		List<Long> timePoint = new ArrayList<Long>();
-/*		
-		starttime = starttime - timeScale;
-		endtime = endtime + timeScale;
-		timescale = timescale + 2;*/
 		
 		for(int i = 0; i <= timescale; i++){
 			long tempTime = starttime + i * timeScale;

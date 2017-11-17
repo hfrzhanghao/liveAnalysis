@@ -36,6 +36,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.external.common.ObjectFactory;
 import com.http.HttpRequest;
 
+@SuppressWarnings("deprecation")
 public class HttpUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(HttpUtil.class);

@@ -3,7 +3,6 @@ package com.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.db.entity.LiveInfoEntity;
 import com.db.entity.PlayDataEntity;
 
 public class PlayListDto {

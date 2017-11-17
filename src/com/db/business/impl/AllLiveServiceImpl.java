@@ -1,14 +1,8 @@
 package com.db.business.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import net.sf.json.JSONObject;
-
 import org.apache.log4j.Logger;
-
 import com.ConfigToJson;
 import com.creator.ICreator;
 import com.creator.impl.BrowserVersionCreator;
@@ -28,15 +22,10 @@ import com.creator.impl.UserOnlineCreator;
 import com.db.business.AllLiveService;
 import com.db.dao.LiveInfoDao;
 import com.db.dao.impl.LiveInfoDaoImpl;
-//import com.db.entity.LiveInfoEntity;
 import com.db.entity.PlayDataEntity;
 import com.dto.AllLiveDto;
-//import com.dto.AllLogDto;
-//import com.dto.LiveListDto;
 import com.dto.PlayListDto;
-import com.dto.PopularDto;
 import com.dto.StatRowDto;
-import com.dto.UserDto;
 import com.external.common.CommonConstants;
 
 public class AllLiveServiceImpl implements AllLiveService {
@@ -44,22 +33,23 @@ public class AllLiveServiceImpl implements AllLiveService {
 	private LiveInfoDao liveInfoDao = null;
 	final String HAS_NO_LOADPLAYER_EVENT = CommonConstants.HAS_NO_LOADPLAYER_EVENT;
 
-	private ICreator deviceCreator;// 按设备类型进行统计
+	private ICreator deviceCreator;// 按操作系统类型行统计
 	private ICreator deviceNameCreator;// 按设备类型进行统计
-	private ICreator lockCountCreator;// 按设备类型进行统计
+	private ICreator lockCountCreator;// 按卡顿次数行统计
 	private ICreator durationCreator;// 按设备类型进行统计
-	private ICreator picDurationCreator;// 按设备类型进行统计
-	private ICreator provinceCreator;// 按设备类型进行统计
-	private ICreator cityCreator;
-	private ICreator osCreator;// 按设备类型进行统计
-	private ICreator sdkCreator;
-	private ICreator userCLCreator;
-	private ICreator userLeaveCreator;
-	private ICreator userOnlineCreator;
-	private ICreator browserVersionCreator;
-	private ICreator openTypeCreator;
+	private ICreator picDurationCreator;// 按出画面时间进行统计
+	private ICreator provinceCreator;// 按省份进行统计
+	private ICreator cityCreator;// 按城市进行统计
+	private ICreator osCreator;// 按os版本进行统计
+	private ICreator sdkCreator;// 按sdk进行统计
+	private ICreator userCLCreator;// 用户进入曲线
+	private ICreator userLeaveCreator;// 用户离开曲线
+	private ICreator userOnlineCreator;// 用户在线曲线
+	private ICreator browserVersionCreator;// 浏览器版本统计
+	private ICreator openTypeCreator;// 打开方式统计
 
 	public AllLiveServiceImpl(long start, long end) {
+		// 各个类的实现，包括数据库实现和各个统计对象的实现
 		liveInfoDao = new LiveInfoDaoImpl();
 		JSONObject json = ConfigToJson.getJSONObject();
 
@@ -107,220 +97,45 @@ public class AllLiveServiceImpl implements AllLiveService {
 	}
 
 	@Override
-	public List<UserDto> getUser(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName,
-			String durationSelect, String duration, String firstPicDurationSelect, String firstPicDuration, String lockCount, String firstPicMin,
-			String firstPicMax, String userAccount, String service, int totalUser) {
-		PlayListDto liveListDto = null;
-		if (service.equals("showTopNUser")) {
-			liveListDto = liveInfoDao.findDurationUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
-					firstPicDurationSelect, firstPicDuration, userAccount, totalUser, /*
-																					 * 1
-																					 * ,
-																					 */true);
-		} else if (service.equals("showLockUser")) {
-			liveListDto = liveInfoDao.findLockUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
-					firstPicDurationSelect, firstPicDuration, lockCount, totalUser, /*
-																					 * 1
-																					 * ,
-																					 */true);
-		} else if (service.equals("showFirstPicDurationUser")) {
-			liveListDto = liveInfoDao.findFirstPicDurationUser(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
-					firstPicDurationSelect, firstPicDuration, firstPicMin, firstPicMax, totalUser, /*
-																									 * 1
-																									 * ,
-																									 */true);
-		}
-
-		List<PlayDataEntity> callList = liveListDto.getList();
-		List<UserDto> userList = new ArrayList<UserDto>();
-
-		for (PlayDataEntity liveInfoEntity : callList) {
-			UserDto userDto = new UserDto();
-			userDto.setBrowserVersion(liveInfoEntity.getBrowser_version());
-			userDto.setUserName(liveInfoEntity.getUserName());
-			userDto.setOpenType(liveInfoEntity.getOpenType());
-			userDto.setOsVersion(liveInfoEntity.getOs_version());
-			userDto.setDeviceName(liveInfoEntity.getDevice_name());
-			userDto.setPlayerSDKType(liveInfoEntity.getPlayer_sdk_type());
-			userDto.setStartTime(liveInfoEntity.getStart_time());
-			userDto.setEndTime(liveInfoEntity.getEnd_time());
-			userDto.setBusinessID(liveInfoEntity.getBusinessID());
-			userDto.setProvince(liveInfoEntity.getProvince());
-			userDto.setCity(liveInfoEntity.getCity());
-			userDto.setLockCount(liveInfoEntity.getLockCount() != null ? liveInfoEntity.getLockCount() : -1);
-			userDto.setDuration(liveInfoEntity.getDuration() != null ? liveInfoEntity.getDuration() : -1);
-			// userDto.setFirst_pic_duration_avg(liveInfoEntity.getFirst_pic_duration_avg());
-			userList.add(userDto);
-		}
-
-		return userList;
-	}
-
-	@Override
 	public AllLiveDto getData(long startTime, long endTime, String url, String domain, String isp, String openType, String businessID, String userName,
 			String durationSelect, String duration, String firstPicDurationSelect, String firstPicDuration, String service, int pageSize) {
 
 		long curr = System.currentTimeMillis();
 		long monthMillis = 30 * 24 * 60 * 60000L;
-		
-		//如果结束时间大于当前时间，开始时间小于当前时间，则将当前时间赋给结束时间
-		if(startTime < curr && endTime > curr){
+
+		// 如果结束时间大于当前时间，开始时间小于当前时间，则将当前时间赋给结束时间
+		if (startTime < curr && endTime > curr) {
 			endTime = curr;
 		}
-		
-		//若结束时间比开始时间多一个月，则只取时间范围内最近一个月
-		if(endTime - startTime > monthMillis){
+
+		// 若结束时间比开始时间多一个月，则只取时间范围内最近一个月
+		if (endTime - startTime > monthMillis) {
 			startTime = endTime - monthMillis;
 		}
-		
+
+		// 查找原始数据库
 		PlayListDto liveListDto = liveInfoDao.findLive(startTime, endTime, url, domain, isp, openType, businessID, userName, durationSelect, duration,
 				firstPicDurationSelect, firstPicDuration, pageSize, 1, true);
 		int totalPage = liveListDto.getTotalPage();
 		int totalData = liveListDto.getTotalData();
 		if (totalPage >= 0) {
 			List<PlayDataEntity> callList = liveListDto.getList();
+			// 开始各项统计
 			insertCount(callList, service, startTime, endTime, domain);
-	        
+
 			liveListDto = null;
 			callList = null;
 			System.gc();
 
+			// 开始产生各统计项的最终结果
 			return putdata(totalData, service, domain);
 		}
 		return null;
 	}
-	
-	@Override
-	public List<Map<String, String>> getDataByIPUrl(long startTime, long endTime, String url, String cip, int pageSize) {
-		List<Map<String, String>> listlog = new ArrayList<Map<String, String>>();
-		PlayListDto liveListDto = liveInfoDao.findLiveLog(startTime, endTime, url, cip, pageSize, 1, true);
-		int totalPage = liveListDto.getTotalPage();
-		if (totalPage > 0) {
-			List<PlayDataEntity> callList = liveListDto.getList();
-			for (PlayDataEntity liveInfoEntity : callList) {
-				Map<String, String> map = new HashMap<String, String>();
-				map.put("uid", liveInfoEntity.getUid());
-				map.put("operation_guid", liveInfoEntity.getOperation_guid());
-				map.put("url", liveInfoEntity.getUrl());
-				map.put("log", liveInfoEntity.getLog());
-				listlog.add(map);
-			}
-			if (totalPage > 1) {
-				for (int i = 2; i <= totalPage; i++) {
-					PlayListDto liveListDTO2 = liveInfoDao.findLiveLog(startTime, endTime, url, cip, pageSize, i, false);
-					List<PlayDataEntity> callList2 = liveListDTO2.getList();
-					for (PlayDataEntity liveInfoEntity : callList2) {
-						Map<String, String> map = new HashMap<String, String>();
-						map.put("uid", liveInfoEntity.getUid());
-						map.put("operation_guid", liveInfoEntity.getOperation_guid());
-						map.put("url", liveInfoEntity.getUrl());
-						map.put("log", liveInfoEntity.getLog());
-						listlog.add(map);
-					}
-				}
-			}
-		}
-		return listlog;
-	}
 
-	@Override
-	public List<String> getIPByLockCount(long startTime, long endTime, String url, int lockCount, String lockCountSelect, int pageSize) {
-
-		List<String> ip_list = new ArrayList<String>();
-		PlayListDto liveListDto = liveInfoDao.findLiveIPByLockCount(startTime, endTime, url, lockCount, lockCountSelect, pageSize, 1, true);
-		int totalPage = liveListDto.getTotalPage();
-		if (totalPage > 0) {
-			List<PlayDataEntity> callList = liveListDto.getList();
-			for (PlayDataEntity liveInfoEntity : callList) {
-				ip_list.add(liveInfoEntity.getCip() + "");
-			}
-			if (totalPage > 1) {
-				for (int i = 2; i <= totalPage; i++) {
-					PlayListDto liveListDTO2 = liveInfoDao.findLiveIPByLockCount(startTime, endTime, url, lockCount, lockCountSelect, pageSize, i, false);
-					List<PlayDataEntity> callList2 = liveListDTO2.getList();
-					for (PlayDataEntity liveInfoEntity : callList2) {
-						ip_list.add(liveInfoEntity.getCip() + "");
-					}
-				}
-			}
-		}
-		return ip_list;
-	}
-
-	@Override
-	public List<String> getIPByPicDuration(long startTime, long endTime, String url, double picDuration, String picDurationSelect, int pageSize) {
-		List<String> ip_list = new ArrayList<String>();
-		PlayListDto liveListDto = liveInfoDao.findLiveIPByPicDuration(startTime, endTime, url, picDuration, picDurationSelect, pageSize, 1, true);
-		int totalPage = liveListDto.getTotalPage();
-		if (totalPage > 0) {
-			List<PlayDataEntity> callList = liveListDto.getList();
-			for (PlayDataEntity liveInfoEntity : callList) {
-				ip_list.add(liveInfoEntity.getCip() + "");
-			}
-			if (totalPage > 1) {
-				for (int i = 2; i <= totalPage; i++) {
-					PlayListDto liveListDTO2 = liveInfoDao.findLiveIPByPicDuration(startTime, endTime, url, picDuration, picDurationSelect, pageSize, i, false);
-					List<PlayDataEntity> callList2 = liveListDTO2.getList();
-					for (PlayDataEntity liveInfoEntity : callList2) {
-						ip_list.add(liveInfoEntity.getCip() + "");
-					}
-				}
-			}
-		}
-		return ip_list;
-	}
-
-	@Override
-	public List<String> getIPByResult(long startTime, long endTime, String url, String checkResult, int pageSize) {
-		List<String> ip_list = new ArrayList<String>();
-		PlayListDto liveListDto = liveInfoDao.findLiveIPByResult(startTime, endTime, url, checkResult, pageSize, 1, true);
-		int totalPage = liveListDto.getTotalPage();
-		if (totalPage > 0) {
-			List<PlayDataEntity> callList = liveListDto.getList();
-			for (PlayDataEntity liveInfoEntity : callList) {
-				ip_list.add(liveInfoEntity.getCip() + "");
-			}
-			if (totalPage > 1) {
-				for (int i = 2; i <= totalPage; i++) {
-					PlayListDto liveListDTO2 = liveInfoDao.findLiveIPByResult(startTime, endTime, url, checkResult, pageSize, i, false);
-					List<PlayDataEntity> callList2 = liveListDTO2.getList();
-					for (PlayDataEntity liveInfoEntity : callList2) {
-						ip_list.add(liveInfoEntity.getCip() + "");
-					}
-				}
-			}
-		}
-		return ip_list;
-	}
-
-	@Override
-	public List<String> getIPByAll(long startTime, long endTime, String url, int lockCount, String lockCountSelect, double picDuration,
-			String picDurationSelect, String checkResult, int pageSize) {
-		List<String> ip_list = new ArrayList<String>();
-		PlayListDto liveListDto = liveInfoDao.findLiveIPByAll(startTime, endTime, url, lockCount, lockCountSelect, picDuration, picDurationSelect, checkResult,
-				pageSize, 1, true);
-		int totalPage = liveListDto.getTotalPage();
-		if (totalPage > 0) {
-			List<PlayDataEntity> callList = liveListDto.getList();
-			for (PlayDataEntity liveInfoEntity : callList) {
-				ip_list.add(liveInfoEntity.getCip() + "");
-			}
-			if (totalPage > 1) {
-				for (int i = 2; i <= totalPage; i++) {
-					PlayListDto liveListDTO2 = liveInfoDao.findLiveIPByAll(startTime, endTime, url, lockCount, lockCountSelect, picDuration, picDurationSelect,
-							checkResult, pageSize, i, true);
-					List<PlayDataEntity> callList2 = liveListDTO2.getList();
-					for (PlayDataEntity liveInfoEntity : callList2) {
-						ip_list.add(liveInfoEntity.getCip() + "");
-					}
-				}
-			}
-		}
-		return ip_list;
-	}
-
+	// 开始各项统计
+	// 关键点：insertRecord()
 	private void insertCount(List<PlayDataEntity> callList, String service, long starttime, long endtime, String domain) {
-		// service = "userCome";
 		if (callList.size() > 0) {
 			for (PlayDataEntity liveInfo : callList) {
 				if (service.equals("userOnline") || service.equals("all")) {
@@ -331,7 +146,6 @@ public class AllLiveServiceImpl implements AllLiveService {
 					}
 				}
 
-				// if(!liveInfo.getOs_type().equals(HAS_NO_LOADPLAYER_EVENT)){
 				if (service.equals("userCome") || service.equals("all")) {
 					try {
 						userCLCreator.insertRecord(liveInfo);
@@ -422,11 +236,12 @@ public class AllLiveServiceImpl implements AllLiveService {
 						logger.error("insertRecord:", e);
 					}
 				}
-				// }
 			}
 		}
 	}
 
+	// 开始产生各统计项的最终结果
+	// 关键点：getRowList()
 	private AllLiveDto putdata(int totalData, String service, String domain) {
 		AllLiveDto alldata = new AllLiveDto();
 
@@ -453,11 +268,13 @@ public class AllLiveServiceImpl implements AllLiveService {
 
 		if (service.equals("domain") || service.equals("all")) {
 			if (domain == null) {
+				//如果domain参数为空，则统计省一级数据
 				StatRowDto province = new StatRowDto();
 				province.setDescription("province");
 				province.setRows(provinceCreator.getRowList());
 				alldata.setProvince(province);
 			} else {
+				//如果domain不为空，则统计domain下各个城市的数据
 				StatRowDto city = new StatRowDto();
 				city.setDescription("city");
 				city.setRows(cityCreator.getRowList());
@@ -533,11 +350,4 @@ public class AllLiveServiceImpl implements AllLiveService {
 		return alldata;
 
 	}
-
-	@Override
-	public List<PopularDto> getPopular(long startTime, long endTime, String domainName, String topN) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

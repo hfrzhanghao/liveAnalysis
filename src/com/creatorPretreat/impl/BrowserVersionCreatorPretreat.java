@@ -16,7 +16,6 @@ import com.db.entity.LiveInfoEntity;
 import com.dto.BaseCols;
 import com.dto.StatCol;
 import com.dto.StatRow;
-import com.external.common.CommonConstants;
 
 public class BrowserVersionCreatorPretreat implements ICreatorPretreat {
 
@@ -57,6 +56,10 @@ public class BrowserVersionCreatorPretreat implements ICreatorPretreat {
 		for (String key : browsermap.keySet()) {
 			if (notComplete != 0) {
 				if (!key.equals(notc)) {
+					//TODO
+					if(total == 0){
+						System.out.println();
+					}
 					BigDecimal btemp = new BigDecimal(browsermap.get(key) + notComplete * (browsermap.get(key) / (double) total)).setScale(0,
 							BigDecimal.ROUND_HALF_UP);
 					int itemp = Integer.parseInt(btemp.toString());
